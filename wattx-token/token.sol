@@ -6,7 +6,8 @@ contract MyToken {
     string public symbol;
     uint8 public decimals;
     uint256 public totalSupply;
-    mapping(address => uint256) public balanceOf;
+    mapping(address => uint256) public balanceWattx;
+    mapping(address => uint256) public balanceInr;
     address public admin;
 
     modifier onlyAdmin() {
@@ -22,14 +23,15 @@ contract MyToken {
         decimals = 18;
         totalSupply = 1000000 * (10 ** uint256(decimals));
         admin = msg.sender;
-        balanceOf[msg.sender] = totalSupply;
+        balanceWattx[msg.sender] = totalSupply;
         emit Transfer(address(0), msg.sender, totalSupply);
     }
 
-    function transfer(address to, uint256 value) external returns (bool) {
-        require(balanceOf[msg.sender] >= value, "Insufficient balance");
-        balanceOf[msg.sender] -= value;
-        balanceOf[to] += value;
+    function transfer(address to, uint256 value, uint256 inrValue) external returns (bool) {
+        require(balanceWattx[msg.sender] >= value, "Insufficient balance");
+        balanceWattx[msg.sender] -= value;
+        balanceWattx[to] += value;
+        balanceInr[to] -= inrValue;
         emit Transfer(msg.sender, to, value);
         return true;
     }
@@ -38,9 +40,16 @@ contract MyToken {
         require(to != address(0), "Invalid address");
         require(amount > 0, "Invalid amount");
 
-        balanceOf[to] += amount;
+        balanceWattx[to] += amount;
         totalSupply += amount;
 
         emit Transfer(address(0), to, amount);
+    }
+
+    function deduct(address from, uint256 value, uint256 inrValue) external returns (bool) {
+        balanceWattx[msg.sender] += value;
+        balanceWattx[from] -= value;
+        balanceInr[from] += inrValue;
+        return true;
     }
 }
