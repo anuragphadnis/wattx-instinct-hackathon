@@ -3,7 +3,7 @@
 <head>
     <meta charset='utf-8'>
     <meta http-equiv='X-UA-Compatible' content='IE=edge'>
-    <title>Web 3 Demo</title>
+    <title>Wattx</title>
     <meta name='viewport' content='width=device-width, initial-scale=1'>
 	<script src="https://cdn.jsdelivr.net/gh/ethereum/web3.js@1.0.0-beta.34/dist/web3.min.js"></script>
 	<script>
@@ -511,6 +511,12 @@
             console.log('Transfer from success');
         }
 
+		async function mint() {
+			const amount = document.getElementById('mintAmount').value;
+			await wattx.methods.mint(await getCurrentAccount(), amount).send({ from: await getCurrentAccount() });
+			console.log('Mint success');
+		}
+
 		load();
 	</script>
 </head>
@@ -538,6 +544,11 @@
         <input type = "text" id = "TransferAddress" placeholder="Address to transfer">
         <input type = "text" id = "TransferAmount" placeholder="Amount to transfer">
         <button onclick="transfer()">Transfer Tokens</button>
+    </div>
+
+	<div>
+        <input type = "text" id = "mintAmount" placeholder="Mint tokens">
+        <button onclick="mint()">Mint</button>
     </div>
 
     <br /><br />

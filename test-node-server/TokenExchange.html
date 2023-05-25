@@ -1,0 +1,321 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset='utf-8'>
+    <meta http-equiv='X-UA-Compatible' content='IE=edge'>
+    <title>Token Exchange</title>
+    <meta name='viewport' content='width=device-width, initial-scale=1'>
+	<script src="https://cdn.jsdelivr.net/gh/ethereum/web3.js@1.0.0-beta.34/dist/web3.min.js"></script>
+	<script>
+		async function loadWeb3() {
+			if (window.ethereum) {
+                const accounts = await window.ethereum.request({ method: "eth_requestAccounts" });
+                if (accounts.length > 0) {
+                // Create a new Web3 instance with MetaMask as the provider
+				window.web3 = new Web3(window.ethereum);
+				window.ethereum.enable();
+    
+                // Get the user's current account
+                const currentAccount = accounts[0];
+                window.currentAccount = currentAccount;
+                // Display the user's current account address
+                console.log("Your current account address is: " + currentAccount);
+                }
+			}
+		}
+		async function load() {
+			await loadWeb3();
+            await loadContract();
+			updateStatus('Ready!');
+		}
+		function updateStatus(status) {
+			const statusEl = document.getElementById('status');
+            if (statusEl === null) return;
+			statusEl.innerHTML = status;
+			console.log(status);
+		}
+        var exchange = null;
+		async function loadContract() {
+			const exchangeAbi = [
+	{
+		"inputs": [
+			{
+				"internalType": "address",
+				"name": "exchangeAddr",
+				"type": "address"
+			},
+			{
+				"internalType": "address",
+				"name": "inrAddr",
+				"type": "address"
+			}
+		],
+		"stateMutability": "nonpayable",
+		"type": "constructor"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "uint256",
+				"name": "",
+				"type": "uint256"
+			}
+		],
+		"name": "buyorders",
+		"outputs": [
+			{
+				"internalType": "address",
+				"name": "from",
+				"type": "address"
+			},
+			{
+				"internalType": "uint256",
+				"name": "exchangeTokens",
+				"type": "uint256"
+			},
+			{
+				"internalType": "uint256",
+				"name": "inrTokens",
+				"type": "uint256"
+			}
+		],
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "uint256",
+				"name": "exchangeTokens",
+				"type": "uint256"
+			},
+			{
+				"internalType": "uint256",
+				"name": "inrTokens",
+				"type": "uint256"
+			}
+		],
+		"name": "createBuyOrder",
+		"outputs": [],
+		"stateMutability": "nonpayable",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "uint256",
+				"name": "exchangeTokens",
+				"type": "uint256"
+			},
+			{
+				"internalType": "uint256",
+				"name": "inrTokens",
+				"type": "uint256"
+			}
+		],
+		"name": "createSellOrder",
+		"outputs": [],
+		"stateMutability": "nonpayable",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "uint256",
+				"name": "exchangeTokens",
+				"type": "uint256"
+			},
+			{
+				"internalType": "uint256",
+				"name": "inrTokens",
+				"type": "uint256"
+			}
+		],
+		"name": "executeBuyOrder",
+		"outputs": [],
+		"stateMutability": "nonpayable",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "uint256",
+				"name": "exchangeTokens",
+				"type": "uint256"
+			},
+			{
+				"internalType": "uint256",
+				"name": "inrTokens",
+				"type": "uint256"
+			}
+		],
+		"name": "executeSellOrder",
+		"outputs": [],
+		"stateMutability": "nonpayable",
+		"type": "function"
+	},
+	{
+		"inputs": [],
+		"name": "getInrBalance",
+		"outputs": [
+			{
+				"internalType": "uint256",
+				"name": "",
+				"type": "uint256"
+			}
+		],
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"inputs": [],
+		"name": "getexchangeBalance",
+		"outputs": [
+			{
+				"internalType": "uint256",
+				"name": "",
+				"type": "uint256"
+			}
+		],
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"inputs": [],
+		"name": "inrAddress",
+		"outputs": [
+			{
+				"internalType": "address",
+				"name": "",
+				"type": "address"
+			}
+		],
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"inputs": [],
+		"name": "owner",
+		"outputs": [
+			{
+				"internalType": "address",
+				"name": "",
+				"type": "address"
+			}
+		],
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "uint256",
+				"name": "",
+				"type": "uint256"
+			}
+		],
+		"name": "sellorders",
+		"outputs": [
+			{
+				"internalType": "address",
+				"name": "from",
+				"type": "address"
+			},
+			{
+				"internalType": "uint256",
+				"name": "exchangeTokens",
+				"type": "uint256"
+			},
+			{
+				"internalType": "uint256",
+				"name": "inrTokens",
+				"type": "uint256"
+			}
+		],
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"inputs": [],
+		"name": "exchangeAddress",
+		"outputs": [
+			{
+				"internalType": "address",
+				"name": "",
+				"type": "address"
+			}
+		],
+		"stateMutability": "view",
+		"type": "function"
+	}
+];
+			const exchangeAddress = "0x660C8c13f7015652827127e93482AbdEDE4bca9e";
+			exchange = await new window.web3.eth.Contract(exchangeAbi, exchangeAddress);
+		}
+
+        async function getCurrentAccount() {
+            const accounts = await window.web3.eth.getAccounts();
+            return accounts[0];
+        }
+
+		async function createBuyOrder() {
+			const wattx = document.getElementById('BuyOrderWattx').value;
+			const inr = document.getElementById('BuyOrderInr').value;
+			await exchange.methods.createBuyOrder(wattx, inr).send({ from: await getCurrentAccount() });	
+		}
+
+		async function createSellOrder() {
+			const wattx = document.getElementById('SellOrderWattx').value;
+			const inr = document.getElementById('SellOrderInr').value;
+			await exchange.methods.createSellOrder(wattx, inr).send({ from: await getCurrentAccount() });	
+		}
+
+		async function executeBuyOrder() {
+			const wattx = document.getElementById('ExecuteBuyOrderWattx').value;
+			const inr = document.getElementById('ExecuteBuyOrderInr').value;
+			await exchange.methods.executeBuyOrder(wattx, inr).send({ from: await getCurrentAccount() });	
+		}
+
+		async function executeSellOrder() {
+			const wattx = document.getElementById('ExecuteSellOrderWattx').value;
+			const inr = document.getElementById('ExecuteSellOrderInr').value;
+			await exchange.methods.executeSellOrder(wattx, inr).send({ from: await getCurrentAccount() });	
+		}
+
+		load();
+	</script>
+</head>
+<body>
+    Web 3 Demo
+    <br >
+    <div>
+        <input type = "text" id = "BuyOrderWattx" placeholder="Wattx">
+        <input type = "text" id = "BuyOrderInr" placeholder="Inr">
+        <button onclick="createBuyOrder()">Create buy order</button>
+    </div>
+
+    <div>
+        <input type = "text" id = "SellOrderWattx" placeholder="Wattx">
+        <input type = "text" id = "SellOrderInr" placeholder="Inr">
+        <button onclick="createSellOrder()">Create sell order</button>
+    </div>
+
+    <div>
+        <input type = "text" id = "ExecuteBuyOrderWattx" placeholder="Wattx">
+        <input type = "text" id = "ExecuteBuyOrderInr" placeholder="Inr">
+        <button onclick="executeBuyOrder()">Execute buy order</button>
+    </div>
+
+	<div>
+        <input type = "text" id = "ExecuteSellOrderWattx" placeholder="Wattx">
+        <input type = "text" id = "ExecuteSellOrderInr" placeholder="Inr">
+        <button onclick="executeSellOrder()">Execute sell order</button>
+    </div>
+
+    <br /><br />
+    Status: <span id="status">Loading...</span>
+    <script type="text/javascript">
+        
+    </script>
+</body>
+</html>
